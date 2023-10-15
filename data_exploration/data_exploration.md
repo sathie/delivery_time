@@ -12,7 +12,7 @@ sns.set_theme()
 
 
 ```python
-df = pd.read_csv("deliverytime.csv")
+df = pd.read_csv("data/deliverytime.csv")
 
 print(df.columns)
 
@@ -207,7 +207,7 @@ hist.legend()
 
 
 
-    <matplotlib.legend.Legend at 0x7f9698cf5580>
+    <matplotlib.legend.Legend at 0x7f9692638370>
 
 
 
@@ -296,7 +296,127 @@ cat_cols.head()
 
 
 
-There are four categorical variables: delivery id, delivery person id, the type of order and the type of vehicle. The id is largely meaningless and can be dropped first.
+There are four categorical variables: delivery id, delivery person ID, the type of order and the type of vehicle. The id is largely meaningless, but it does seem to contain a restaurant ID.
+
+
+```python
+import re
+
+pattern = r"^.+RES\d{2}"
+
+df["restaurant"] = [re.search(pattern, cell).group() for cell in df.delivery_person_id]
+
+restaurants = list(set(df.restaurant))
+restaurants.sort()
+print(len(restaurants))
+
+df.sort_values(by=['restaurant']).loc[0:100, ["restaurant", "restaurant_latitude", "restaurant_longitude"]]
+```
+
+    418
+
+
+
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>restaurant</th>
+      <th>restaurant_latitude</th>
+      <th>restaurant_longitude</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>INDORES13</td>
+      <td>22.745049</td>
+      <td>75.892471</td>
+    </tr>
+    <tr>
+      <th>11859</th>
+      <td>INDORES13</td>
+      <td>22.745049</td>
+      <td>75.892471</td>
+    </tr>
+    <tr>
+      <th>12357</th>
+      <td>INDORES13</td>
+      <td>22.745049</td>
+      <td>75.892471</td>
+    </tr>
+    <tr>
+      <th>14807</th>
+      <td>INDORES13</td>
+      <td>22.745049</td>
+      <td>75.892471</td>
+    </tr>
+    <tr>
+      <th>12346</th>
+      <td>INDORES13</td>
+      <td>22.745049</td>
+      <td>75.892471</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>17549</th>
+      <td>PUNERES17</td>
+      <td>18.530963</td>
+      <td>73.828972</td>
+    </tr>
+    <tr>
+      <th>3759</th>
+      <td>PUNERES17</td>
+      <td>18.530963</td>
+      <td>73.828972</td>
+    </tr>
+    <tr>
+      <th>34206</th>
+      <td>PUNERES17</td>
+      <td>18.530963</td>
+      <td>73.828972</td>
+    </tr>
+    <tr>
+      <th>23936</th>
+      <td>PUNERES17</td>
+      <td>18.530963</td>
+      <td>73.828972</td>
+    </tr>
+    <tr>
+      <th>100</th>
+      <td>PUNERES17</td>
+      <td>18.530963</td>
+      <td>73.828972</td>
+    </tr>
+  </tbody>
+</table>
+<p>16433 rows × 3 columns</p>
+</div>
+
+
+
+As cases with the same restaurant ID share the same location, we can infer that there are a total of 418 restaurants.
 
 
 ```python
@@ -342,7 +462,7 @@ sns.boxplot(x = df.type_of_order, y = df.time_taken)
 
 
     
-![png](output_20_1.png)
+![png](output_22_1.png)
     
 
 
@@ -483,7 +603,7 @@ sns.boxplot(x = df.type_of_vehicle, y = df.time_taken)
 
 
     
-![png](output_26_1.png)
+![png](output_28_1.png)
     
 
 
@@ -776,6 +896,7 @@ df.loc[df.restaurant_latitude < 0, :]
       <th>type_of_order</th>
       <th>type_of_vehicle</th>
       <th>time_taken</th>
+      <th>restaurant</th>
     </tr>
   </thead>
   <tbody>
@@ -792,6 +913,7 @@ df.loc[df.restaurant_latitude < 0, :]
       <td>Drinks</td>
       <td>scooter</td>
       <td>15</td>
+      <td>AGRRES01</td>
     </tr>
     <tr>
       <th>283</th>
@@ -806,6 +928,7 @@ df.loc[df.restaurant_latitude < 0, :]
       <td>Meal</td>
       <td>scooter</td>
       <td>31</td>
+      <td>AGRRES12</td>
     </tr>
     <tr>
       <th>289</th>
@@ -820,6 +943,7 @@ df.loc[df.restaurant_latitude < 0, :]
       <td>Meal</td>
       <td>scooter</td>
       <td>12</td>
+      <td>PUNERES02</td>
     </tr>
     <tr>
       <th>425</th>
@@ -834,6 +958,7 @@ df.loc[df.restaurant_latitude < 0, :]
       <td>Snack</td>
       <td>scooter</td>
       <td>20</td>
+      <td>DEHRES13</td>
     </tr>
     <tr>
       <th>534</th>
@@ -848,9 +973,11 @@ df.loc[df.restaurant_latitude < 0, :]
       <td>Buffet</td>
       <td>scooter</td>
       <td>16</td>
+      <td>MYSRES07</td>
     </tr>
     <tr>
       <th>...</th>
+      <td>...</td>
       <td>...</td>
       <td>...</td>
       <td>...</td>
@@ -876,6 +1003,7 @@ df.loc[df.restaurant_latitude < 0, :]
       <td>Buffet</td>
       <td>motorcycle</td>
       <td>15</td>
+      <td>AURGRES03</td>
     </tr>
     <tr>
       <th>45020</th>
@@ -890,6 +1018,7 @@ df.loc[df.restaurant_latitude < 0, :]
       <td>Drinks</td>
       <td>electric_scooter</td>
       <td>30</td>
+      <td>PUNERES04</td>
     </tr>
     <tr>
       <th>45108</th>
@@ -904,6 +1033,7 @@ df.loc[df.restaurant_latitude < 0, :]
       <td>Meal</td>
       <td>scooter</td>
       <td>19</td>
+      <td>GOARES18</td>
     </tr>
     <tr>
       <th>45182</th>
@@ -918,6 +1048,7 @@ df.loc[df.restaurant_latitude < 0, :]
       <td>Drinks</td>
       <td>motorcycle</td>
       <td>34</td>
+      <td>KNPRES16</td>
     </tr>
     <tr>
       <th>45504</th>
@@ -932,10 +1063,11 @@ df.loc[df.restaurant_latitude < 0, :]
       <td>Meal</td>
       <td>scooter</td>
       <td>24</td>
+      <td>BANGRES07</td>
     </tr>
   </tbody>
 </table>
-<p>431 rows × 11 columns</p>
+<p>431 rows × 12 columns</p>
 </div>
 
 
@@ -1035,37 +1167,11 @@ sns.regplot(x = df.beeline_distance, y = df.time_taken,
 
 
     
-![png](output_50_1.png)
+![png](output_52_1.png)
     
 
 
 There seems to be a positive association between the beeline distance and the time taken.
-
-### Restaurant location
-
-
-```python
-df["restaurant"] = [f"({row.restaurant_latitude}, {row.restaurant_longitude})" for idx, row in df.iterrows()]
-print(df.restaurant.nunique())
-print(df.restaurant.value_counts())
-```
-
-    389
-    (0.0, 0.0)                3640
-    (26.911378, 75.789034)     182
-    (26.914142, 75.805704)     181
-    (26.90294, 75.793007)      178
-    (26.892312, 75.806896)     176
-                              ... 
-    (30.873988, 75.842739)      30
-    (9.988483, 76.295211)       30
-    (19.874449, 75.360232)      30
-    (9.960846, 76.293936)       29
-    (23.218998, 77.373573)      29
-    Name: restaurant, Length: 389, dtype: int64
-
-
-There are 389 restaurant locations in total. The most common restaurant location is (0, 0). This is likely not the real location of the restaurant, so the actual number of restaurants cannot be inferred from this.
 
 ### Age and rating of delivery person
 
@@ -1086,7 +1192,7 @@ heatplot.set(title = "Correlation Matrix")
 
 
     
-![png](output_56_1.png)
+![png](output_55_1.png)
     
 
 
@@ -1109,7 +1215,7 @@ print(f"Number of cases with a rating of 6: {sum(df.delivery_person_ratings == 6
     75%          4.800000
     max          6.000000
     Name: delivery_person_ratings, dtype: float64
-    Number of people with a rating of 6: 53
+    Number of cases with a rating of 6: 53
 
 
 There are 53 cases with a rating of 6. A rating scale from 1 to 5 is uncommon, and the cases are very few, so this is probably a mistake. The rating is recoded to 5.
@@ -1133,7 +1239,7 @@ sns.scatterplot(x = df.delivery_person_ratings, y = df.time_taken, alpha = 0.005
 
 
     
-![png](output_61_1.png)
+![png](output_60_1.png)
     
 
 
@@ -1151,7 +1257,7 @@ sns.scatterplot(x = df.delivery_person_age, y = df.time_taken, alpha = 0.005)
 
 
     
-![png](output_62_1.png)
+![png](output_61_1.png)
     
 
 
@@ -1167,7 +1273,7 @@ print(cat_cols_dummy.columns)
            'delivery_person_ratings', 'restaurant_latitude',
            'restaurant_longitude', 'delivery_location_latitude',
            'delivery_location_longitude', 'type_of_order', 'type_of_vehicle',
-           'time_taken', 'beeline_distance', 'restaurant'],
+           'time_taken', 'restaurant', 'beeline_distance'],
           dtype='object')
     Index(['type_of_order_Buffet', 'type_of_order_Meal', 'type_of_order_Snack',
            'type_of_vehicle_bicycle', 'type_of_vehicle_electric_scooter',
@@ -1291,5 +1397,5 @@ df_finished.head()
 
 
 ```python
-df_finished.to_csv("deliverytime_processed.csv")
+df_finished.to_csv("data/deliverytime_processed.csv")
 ```
